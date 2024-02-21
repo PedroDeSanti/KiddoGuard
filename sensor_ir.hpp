@@ -9,9 +9,18 @@ class SensorIR {
 
         bool get_state();
 
+        void update();
+
+        bool has_changed();
+
+        bool is_rising_edge();
+
+        bool is_falling_edge();
+
     private:
         int pin;
-        bool state;
+        bool current_state;
+        bool last_state;
 };
 
 #endif // __SENSOR_IR_HPP__

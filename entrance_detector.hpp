@@ -6,7 +6,7 @@
 
 class EntranceDetector {
     public:
-        EntranceDetector(SensorIR outside_sensor, SensorIR inside_sensor, SensorIR top_sensor);
+        EntranceDetector(SensorIR* outside_sensor, SensorIR* inside_sensor, SensorIR* top_sensor);
 
         void update();
 
@@ -15,9 +15,9 @@ class EntranceDetector {
         int get_adult_count();
 
     private:
-        SensorIR outside_sensor;
-        SensorIR inside_sensor;
-        SensorIR top_sensor;
+        SensorIR* outside_sensor;
+        SensorIR* inside_sensor;
+        SensorIR* top_sensor;
         int child_count;
         int adult_count;
 

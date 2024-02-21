@@ -6,9 +6,6 @@
 class Buzzer {
     public:
         Buzzer(int pin);
-        void beep(int freq, int duration);
-
-        void beep(int freq);
 
         void beep();
 

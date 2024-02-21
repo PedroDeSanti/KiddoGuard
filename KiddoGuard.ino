@@ -1,6 +1,7 @@
-#include <ESP32WiFi.h>
+#include <WiFi.h>
 #include <PubSubClient.h>
 #include "room.hpp"
+#include "config.hpp"
 
 static SensorIR bottom_sensor_1(GPIO_BOTTOM_SENSOR_1);
 static SensorIR bottom_sensor_2(GPIO_BOTTOM_SENSOR_2);
@@ -8,26 +9,26 @@ static SensorIR top_sensor(GPIO_TOP_SENSOR);
 
 static Buzzer buzzer(GPIO_BUZZER);
 
-static EntranceDetector sala_cozinha(bottom_sensor_1, bottom_sensor_2, top_sensor);
-static EntranceDetector cozinha_sala(bottom_sensor_2, bottom_sensor_1, top_sensor);
+static EntranceDetector sala_cozinha(&bottom_sensor_1, &bottom_sensor_2, &top_sensor);
+static EntranceDetector cozinha_sala(&bottom_sensor_2, &bottom_sensor_1, &top_sensor);
 
 static EntranceDetector* sala_entrances[] = {&cozinha_sala};
 static EntranceDetector* conzinha_entrances[] = {&sala_cozinha};
 
-static Room sala(sala_entrances, 1, buzzer, 0);
-static Room cozinha(conzinha_entrances, 1, buzzer, 1);
+static Room sala(sala_entrances, 1, &buzzer, 0);
+static Room cozinha(conzinha_entrances, 1, &buzzer, 1);
 
 static int sala_child_count = 0;
 static int sala_adult_count = 0;
 static int cozinha_child_count = 0;
 static int cozinha_adult_count = 0;
 
-String user = "usuario mqtt";
-String passwd = "senha mqtt";
+String user = "eu sou o pedro";
+String passwd = "";
 
-const char* ssid = "nome rede";
-const char* password = "senha rede";
-const char* mqtt_server = "ip mqtt";
+const char* ssid = "WiFi - 40 reais/hora";
+const char* password = "SenhaSecreta2";
+const char* mqtt_server = "192.168.99.180";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -75,7 +76,12 @@ void reconnect() {
             Serial.println("connected");
 
             // Once connected, publish an announcement...
-            client.publish((user + "/homehello").c_str(), "hello world");
+            client.publish("/homehello", "hello world");
+
+            client.publish("/comodo/sala/child_count", "0");
+            client.publish("/comodo/sala/adult_count", "0");
+            client.publish("/comodo/cozinha/child_count", "0");
+            client.publish("/comodo/cozinha/adult_count", "0");
         } else {
             Serial.print("failed, rc=");
             Serial.print(client.state());
@@ -102,7 +108,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void setup() {
     Serial.begin(9600);
     setup_wifi();
-    client.setServer(mqtt_server, 80);
+    client.setServer(mqtt_server, 1883);
     client.setCallback(callback);
 }
 
@@ -114,16 +120,41 @@ void loop() {
 
     client.loop();
 
+    bottom_sensor_1.update();
+    bottom_sensor_2.update();
+    top_sensor.update();
+
     sala.update();
     cozinha.update();
+
+    if (sala.get_child_count() != sala_child_count) {
+        client.publish("/comodo/sala/child_count", String(sala.get_child_count()).c_str());
+    }
+
+    if (sala.get_adult_count() != sala_adult_count) {
+        client.publish("/comodo/sala/adult_count", String(sala.get_adult_count()).c_str());
+    }
+
+    if (cozinha.get_child_count() != cozinha_child_count) {
+        client.publish("/comodo/cozinha/child_count", String(cozinha.get_child_count()).c_str());
+    }
+
+    if (cozinha.get_adult_count() != cozinha_adult_count) {
+        client.publish("/comodo/cozinha/adult_count", String(cozinha.get_adult_count()).c_str());
+    }
+
+    if (cozinha.has_children_alone()) {
+        client.publish("/comodo/cozinha/children_alone", "1");
+        buzzer.beep();
+    } else {
+        client.publish("/comodo/cozinha/children_alone", "0");
+        buzzer.stop();
+    }
 
     sala_child_count = sala.get_child_count();
     sala_adult_count = sala.get_adult_count();
     cozinha_child_count = cozinha.get_child_count();
     cozinha_adult_count = cozinha.get_adult_count();
 
-    client.publish(("/comodo/sala/child_count").c_str(), sala_child_count);
-    client.publish(("/comodo/sala/adult_count").c_str(), sala_adult_count);
-    client.publish(("/comodo/cozinha/child_count").c_str(), cozinha_child_count);
-    client.publish(("/comodo/cozinha/adult_count").c_str(), cozinha_adult_count);
+    delay(20);
 }

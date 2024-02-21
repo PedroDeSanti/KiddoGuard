@@ -1,6 +1,6 @@
 #include "room.hpp"
 
-Room::Room(EntranceDetector** entrance_detectors, int num_of_entrances, Buzzer buzzer, int room_id) : buzzer(buzzer) {
+Room::Room(EntranceDetector** entrance_detectors, int num_of_entrances, Buzzer* buzzer, int room_id) : buzzer(buzzer) {
     this->entrance_detectors = entrance_detectors;
     this->num_of_entrances = num_of_entrances;
     this->room_id = room_id;
@@ -9,10 +9,21 @@ Room::Room(EntranceDetector** entrance_detectors, int num_of_entrances, Buzzer b
 }
 
 void Room::update() {
+    this->child_count = 0;
+    this->adult_count = 0;
+
     for (int i = 0; i < this->num_of_entrances; i++) {
         this->entrance_detectors[i]->update();
         this->child_count += this->entrance_detectors[i]->get_child_count();
         this->adult_count += this->entrance_detectors[i]->get_adult_count();
+    }
+
+    if (this->child_count < 0) {
+        this->child_count = 0;
+    }
+
+    if (this->adult_count < 0) {
+        this->adult_count = 0;
     }
 }
 
@@ -22,6 +33,10 @@ int Room::get_child_count() {
 
 int Room::get_adult_count() {
     return this->adult_count;
+}
+
+bool Room::has_children_alone() {
+    return ((this->child_count > 0) && (this->adult_count == 0));
 }
 
 int Room::get_room_id() {

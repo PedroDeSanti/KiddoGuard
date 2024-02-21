@@ -8,7 +8,7 @@
 
 class Room {
     public:
-        Room(EntranceDetector** entrances, int num_of_entrances, Buzzer buzzer, int room_id);
+        Room(EntranceDetector** entrances, int num_of_entrances, Buzzer* buzzer, int room_id);
 
         void update();
 
@@ -18,12 +18,14 @@ class Room {
 
         int get_room_id();
 
+        bool has_children_alone();
+
     private:
         int room_id;
         int child_count;
         int adult_count;
 
-        Buzzer buzzer;
+        Buzzer* buzzer;
 
         EntranceDetector** entrance_detectors;
         int num_of_entrances;

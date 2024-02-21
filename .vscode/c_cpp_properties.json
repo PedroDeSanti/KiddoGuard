@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/arduino/arduino-1.8.19/hardware/arduino/avr/cores/arduino/**",
+                "/home/santi/Arduino/libraries/**",
+                "/opt/arduino/arduino-1.8.19/libraries/**",
+                "/opt/arduino/arduino-1.8.19/**",
+                "/usr/include/newlib/c++/10.3.1/**"
+
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}
